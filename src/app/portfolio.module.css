@@ -632,6 +632,25 @@
 
   .carouselShell {
     width: calc(100vw - 24px);
+    overflow: hidden;
+  }
+
+  .carousel {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    touch-action: pan-x pan-y pinch-zoom;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mediaStrip {
+    transform: none !important;
+    transition: none;
+  }
+
+  .mediaStrip > * {
+    scroll-snap-align: start;
   }
 
   .carouselButtonLeft {

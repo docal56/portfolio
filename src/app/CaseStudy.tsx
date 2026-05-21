@@ -1,13 +1,7 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
-import {
-  type PointerEvent,
-  type ReactNode,
-  type TouchEvent,
-  useRef,
-  useState,
-} from "react";
+import { type PointerEvent, type ReactNode, useRef, useState } from "react";
 import styles from "./portfolio.module.css";
 
 type ProjectCopy = {
@@ -17,7 +11,6 @@ type ProjectCopy = {
 };
 
 type DragState = {
-  deltaX: number;
   offset: number;
   x: number;
   y: number;
@@ -70,25 +63,19 @@ export function CaseStudy({
   }
 
   function move(direction: "previous" | "next") {
+    const carousel = carouselRef.current;
     const multiplier = direction === "next" ? -1 : 1;
-
-    setOffset((currentOffset) => clamp(currentOffset + getStep() * multiplier));
-  }
-
-  function settleSwipe(state: DragState | null) {
-    if (!state || state.mode !== "horizontal") {
-      return;
-    }
-
     const step = getStep();
-    const threshold = Math.min(90, step * 0.18);
 
-    if (Math.abs(state.deltaX) < threshold) {
-      setOffset(clamp(state.offset));
+    if (carousel && window.matchMedia("(max-width: 820px)").matches) {
+      carousel.scrollBy({
+        left: step * (direction === "next" ? 1 : -1),
+        behavior: "smooth",
+      });
       return;
     }
 
-    setOffset(clamp(state.offset + (state.deltaX < 0 ? -step : step)));
+    setOffset((currentOffset) => clamp(currentOffset + step * multiplier));
   }
 
   function startDrag(event: PointerEvent<HTMLDivElement>) {
@@ -100,7 +87,6 @@ export function CaseStudy({
 
     event.preventDefault();
     dragState.current = {
-      deltaX: 0,
       offset,
       x: event.clientX,
       y: event.clientY,
@@ -120,7 +106,6 @@ export function CaseStudy({
 
     const deltaX = event.clientX - state.x;
     const deltaY = event.clientY - state.y;
-    state.deltaX = deltaX;
 
     if (state.mode === "pending") {
       state.mode = Math.abs(deltaX) > Math.abs(deltaY) ? "horizontal" : "vertical";
@@ -136,7 +121,6 @@ export function CaseStudy({
 
   function stopDrag(event: PointerEvent<HTMLDivElement>) {
     const carousel = carouselRef.current;
-    const state = dragState.current;
 
     if (!carousel) {
       dragState.current = null;
@@ -148,66 +132,6 @@ export function CaseStudy({
     }
 
     delete carousel.dataset.dragging;
-    settleSwipe(state);
-    dragState.current = null;
-  }
-
-  function startTouchDrag(event: TouchEvent<HTMLDivElement>) {
-    const touch = event.touches[0];
-
-    if (!touch) {
-      return;
-    }
-
-    dragState.current = {
-      deltaX: 0,
-      offset,
-      x: touch.clientX,
-      y: touch.clientY,
-      mode: "pending",
-    };
-
-    if (carouselRef.current) {
-      carouselRef.current.dataset.dragging = "true";
-    }
-  }
-
-  function touchDrag(event: TouchEvent<HTMLDivElement>) {
-    const touch = event.touches[0];
-    const state = dragState.current;
-
-    if (!touch || !state) {
-      return;
-    }
-
-    const deltaX = touch.clientX - state.x;
-    const deltaY = touch.clientY - state.y;
-    state.deltaX = deltaX;
-
-    if (state.mode === "pending") {
-      if (Math.abs(deltaX) < 6 && Math.abs(deltaY) < 6) {
-        return;
-      }
-
-      state.mode = Math.abs(deltaX) > Math.abs(deltaY) ? "horizontal" : "vertical";
-    }
-
-    if (state.mode === "vertical") {
-      return;
-    }
-
-    event.preventDefault();
-    setOffset(clamp(state.offset + deltaX));
-  }
-
-  function stopTouchDrag() {
-    const state = dragState.current;
-
-    if (carouselRef.current) {
-      delete carouselRef.current.dataset.dragging;
-    }
-
-    settleSwipe(state);
     dragState.current = null;
   }
 
@@ -245,10 +169,6 @@ export function CaseStudy({
           onPointerMove={drag}
           onPointerUp={stopDrag}
           onPointerCancel={stopDrag}
-          onTouchStart={startTouchDrag}
-          onTouchMove={touchDrag}
-          onTouchEnd={stopTouchDrag}
-          onTouchCancel={stopTouchDrag}
         >
           <div
             className={styles.mediaStrip}
