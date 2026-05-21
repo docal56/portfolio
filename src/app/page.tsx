@@ -1,5 +1,4 @@
 /* eslint-disable @next/next/no-img-element */
-import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { CaseStudy } from "./CaseStudy";
 import styles from "./portfolio.module.css";
@@ -32,12 +31,12 @@ function Header() {
       <div className={styles.ctas}>
         <a
           className={styles.iconButton}
-          href="https://www.linkedin.com/in/daveocallaghan/"
+          href="https://www.linkedin.com/in/daveocal/"
           aria-label="LinkedIn"
         >
-          <ExternalLink aria-hidden="true" size={20} strokeWidth={2} />
+          <img src={asset("linkedin.svg")} alt="" />
         </a>
-        <a className={styles.contactButton} href="mailto:hello@daveocallaghan.com">
+        <a className={styles.contactButton} href="mailto:daveo@hey.com">
           Get in touch
         </a>
       </div>

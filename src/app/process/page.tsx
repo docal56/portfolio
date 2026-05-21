@@ -1,6 +1,9 @@
-import { ArrowRight, ExternalLink } from "lucide-react";
+/* eslint-disable @next/next/no-img-element */
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import styles from "../portfolio.module.css";
+
+const asset = (name: string) => `/figma-assets/${name}`;
 
 function Header() {
   return (
@@ -14,12 +17,12 @@ function Header() {
       <div className={styles.ctas}>
         <a
           className={styles.iconButton}
-          href="https://www.linkedin.com/in/daveocallaghan/"
+          href="https://www.linkedin.com/in/daveocal/"
           aria-label="LinkedIn"
         >
-          <ExternalLink aria-hidden="true" size={20} strokeWidth={2} />
+          <img src={asset("linkedin.svg")} alt="" />
         </a>
-        <a className={styles.contactButton} href="mailto:hello@daveocallaghan.com">
+        <a className={styles.contactButton} href="mailto:daveo@hey.com">
           Get in touch
         </a>
       </div>
