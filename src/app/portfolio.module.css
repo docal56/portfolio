@@ -234,6 +234,7 @@
   position: relative;
   width: min(1320px, 100vw - 48px);
   overflow: visible;
+  touch-action: pan-y pinch-zoom;
 }
 
 .carouselButton {

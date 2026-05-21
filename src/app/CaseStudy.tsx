@@ -17,6 +17,7 @@ type ProjectCopy = {
 };
 
 type DragState = {
+  deltaX: number;
   offset: number;
   x: number;
   y: number;
@@ -74,15 +75,32 @@ export function CaseStudy({
     setOffset((currentOffset) => clamp(currentOffset + getStep() * multiplier));
   }
 
+  function settleSwipe(state: DragState | null) {
+    if (!state || state.mode !== "horizontal") {
+      return;
+    }
+
+    const step = getStep();
+    const threshold = Math.min(90, step * 0.18);
+
+    if (Math.abs(state.deltaX) < threshold) {
+      setOffset(clamp(state.offset));
+      return;
+    }
+
+    setOffset(clamp(state.offset + (state.deltaX < 0 ? -step : step)));
+  }
+
   function startDrag(event: PointerEvent<HTMLDivElement>) {
     const carousel = carouselRef.current;
 
-    if (!carousel) {
+    if (!carousel || event.pointerType === "touch") {
       return;
     }
 
     event.preventDefault();
     dragState.current = {
+      deltaX: 0,
       offset,
       x: event.clientX,
       y: event.clientY,
@@ -102,6 +120,7 @@ export function CaseStudy({
 
     const deltaX = event.clientX - state.x;
     const deltaY = event.clientY - state.y;
+    state.deltaX = deltaX;
 
     if (state.mode === "pending") {
       state.mode = Math.abs(deltaX) > Math.abs(deltaY) ? "horizontal" : "vertical";
@@ -117,10 +136,10 @@ export function CaseStudy({
 
   function stopDrag(event: PointerEvent<HTMLDivElement>) {
     const carousel = carouselRef.current;
-
-    dragState.current = null;
+    const state = dragState.current;
 
     if (!carousel) {
+      dragState.current = null;
       return;
     }
 
@@ -129,6 +148,8 @@ export function CaseStudy({
     }
 
     delete carousel.dataset.dragging;
+    settleSwipe(state);
+    dragState.current = null;
   }
 
   function startTouchDrag(event: TouchEvent<HTMLDivElement>) {
@@ -139,6 +160,7 @@ export function CaseStudy({
     }
 
     dragState.current = {
+      deltaX: 0,
       offset,
       x: touch.clientX,
       y: touch.clientY,
@@ -160,6 +182,7 @@ export function CaseStudy({
 
     const deltaX = touch.clientX - state.x;
     const deltaY = touch.clientY - state.y;
+    state.deltaX = deltaX;
 
     if (state.mode === "pending") {
       if (Math.abs(deltaX) < 6 && Math.abs(deltaY) < 6) {
@@ -178,11 +201,14 @@ export function CaseStudy({
   }
 
   function stopTouchDrag() {
-    dragState.current = null;
+    const state = dragState.current;
 
     if (carouselRef.current) {
       delete carouselRef.current.dataset.dragging;
     }
+
+    settleSwipe(state);
+    dragState.current = null;
   }
 
   return (
