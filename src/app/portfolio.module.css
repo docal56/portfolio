@@ -209,15 +209,9 @@
   color: rgba(255, 255, 255, 0.8);
 }
 
-.arrows {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 20px;
-}
-
 .arrowLeft,
-.arrowRight {
+.arrowRight,
+.carouselButton {
   display: grid;
   width: 40px;
   height: 40px;
@@ -236,13 +230,36 @@
   transform: rotate(180deg);
 }
 
-.carousel {
+.carouselShell {
+  position: relative;
   width: min(1320px, 100vw - 48px);
+  overflow: visible;
+}
+
+.carouselButton {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  transform: translateY(-50%);
+}
+
+.carouselButtonLeft {
+  left: -20px;
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.carouselButtonRight {
+  right: -20px;
+}
+
+.carousel {
+  width: 100%;
   overflow: visible;
   cursor: grab;
   scrollbar-width: none;
-  touch-action: pan-y;
+  touch-action: pan-y pinch-zoom;
   user-select: none;
+  -webkit-user-select: none;
 }
 
 .carousel::-webkit-scrollbar {
@@ -608,16 +625,20 @@
     font-size: 36px;
   }
 
-  .arrows {
-    display: none;
-  }
-
   .mediaStrip {
     padding-bottom: 8px;
   }
 
-  .carousel {
+  .carouselShell {
     width: calc(100vw - 24px);
+  }
+
+  .carouselButtonLeft {
+    left: 12px;
+  }
+
+  .carouselButtonRight {
+    right: 12px;
   }
 
   .processPage {

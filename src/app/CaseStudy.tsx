@@ -1,7 +1,13 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
-import { type PointerEvent, type ReactNode, useRef, useState } from "react";
+import {
+  type PointerEvent,
+  type ReactNode,
+  type TouchEvent,
+  useRef,
+  useState,
+} from "react";
 import styles from "./portfolio.module.css";
 
 type ProjectCopy = {
@@ -13,6 +19,8 @@ type ProjectCopy = {
 type DragState = {
   offset: number;
   x: number;
+  y: number;
+  mode: "pending" | "horizontal" | "vertical";
 };
 
 export function CaseStudy({
@@ -77,6 +85,8 @@ export function CaseStudy({
     dragState.current = {
       offset,
       x: event.clientX,
+      y: event.clientY,
+      mode: "pending",
     };
     carousel.setPointerCapture(event.pointerId);
     carousel.dataset.dragging = "true";
@@ -90,8 +100,19 @@ export function CaseStudy({
       return;
     }
 
+    const deltaX = event.clientX - state.x;
+    const deltaY = event.clientY - state.y;
+
+    if (state.mode === "pending") {
+      state.mode = Math.abs(deltaX) > Math.abs(deltaY) ? "horizontal" : "vertical";
+    }
+
+    if (state.mode === "vertical") {
+      return;
+    }
+
     event.preventDefault();
-    setOffset(clamp(state.offset + event.clientX - state.x));
+    setOffset(clamp(state.offset + deltaX));
   }
 
   function stopDrag(event: PointerEvent<HTMLDivElement>) {
@@ -110,6 +131,60 @@ export function CaseStudy({
     delete carousel.dataset.dragging;
   }
 
+  function startTouchDrag(event: TouchEvent<HTMLDivElement>) {
+    const touch = event.touches[0];
+
+    if (!touch) {
+      return;
+    }
+
+    dragState.current = {
+      offset,
+      x: touch.clientX,
+      y: touch.clientY,
+      mode: "pending",
+    };
+
+    if (carouselRef.current) {
+      carouselRef.current.dataset.dragging = "true";
+    }
+  }
+
+  function touchDrag(event: TouchEvent<HTMLDivElement>) {
+    const touch = event.touches[0];
+    const state = dragState.current;
+
+    if (!touch || !state) {
+      return;
+    }
+
+    const deltaX = touch.clientX - state.x;
+    const deltaY = touch.clientY - state.y;
+
+    if (state.mode === "pending") {
+      if (Math.abs(deltaX) < 6 && Math.abs(deltaY) < 6) {
+        return;
+      }
+
+      state.mode = Math.abs(deltaX) > Math.abs(deltaY) ? "horizontal" : "vertical";
+    }
+
+    if (state.mode === "vertical") {
+      return;
+    }
+
+    event.preventDefault();
+    setOffset(clamp(state.offset + deltaX));
+  }
+
+  function stopTouchDrag() {
+    dragState.current = null;
+
+    if (carouselRef.current) {
+      delete carouselRef.current.dataset.dragging;
+    }
+  }
+
   return (
     <section className={`${styles.projectSection} ${className}`}>
       <div className={styles.projectDetails}>
@@ -126,41 +201,45 @@ export function CaseStudy({
             ))}
           </div>
         </div>
-        <div className={styles.arrows}>
-          <button
-            className={styles.arrowLeft}
-            type="button"
-            onClick={() => move("previous")}
-            aria-label={`Show previous ${copy.title} image`}
-          >
-            <ArrowRight aria-hidden="true" size={20} strokeWidth={2} />
-          </button>
-          <button
-            className={styles.arrowRight}
-            type="button"
-            onClick={() => move("next")}
-            aria-label={`Show next ${copy.title} image`}
-          >
-            <ArrowRight aria-hidden="true" size={20} strokeWidth={2} />
-          </button>
-        </div>
       </div>
-      <div
-        className={styles.carousel}
-        ref={carouselRef}
-        onDragStart={(event) => event.preventDefault()}
-        onPointerDown={startDrag}
-        onPointerMove={drag}
-        onPointerUp={stopDrag}
-        onPointerCancel={stopDrag}
-      >
-        <div
-          className={styles.mediaStrip}
-          ref={trackRef}
-          style={{ transform: `translate3d(${offset}px, 0, 0)` }}
+      <div className={styles.carouselShell}>
+        <button
+          className={`${styles.carouselButton} ${styles.carouselButtonLeft}`}
+          type="button"
+          onClick={() => move("previous")}
+          aria-label={`Show previous ${copy.title} image`}
         >
-          {children}
+          <ArrowRight aria-hidden="true" size={20} strokeWidth={2} />
+        </button>
+        <div
+          className={styles.carousel}
+          ref={carouselRef}
+          onDragStart={(event) => event.preventDefault()}
+          onPointerDown={startDrag}
+          onPointerMove={drag}
+          onPointerUp={stopDrag}
+          onPointerCancel={stopDrag}
+          onTouchStart={startTouchDrag}
+          onTouchMove={touchDrag}
+          onTouchEnd={stopTouchDrag}
+          onTouchCancel={stopTouchDrag}
+        >
+          <div
+            className={styles.mediaStrip}
+            ref={trackRef}
+            style={{ transform: `translate3d(${offset}px, 0, 0)` }}
+          >
+            {children}
+          </div>
         </div>
+        <button
+          className={`${styles.carouselButton} ${styles.carouselButtonRight}`}
+          type="button"
+          onClick={() => move("next")}
+          aria-label={`Show next ${copy.title} image`}
+        >
+          <ArrowRight aria-hidden="true" size={20} strokeWidth={2} />
+        </button>
       </div>
     </section>
   );
