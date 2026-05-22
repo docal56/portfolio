@@ -654,11 +654,11 @@
   }
 
   .carouselButtonLeft {
-    left: 12px;
+    display: none;
   }
 
   .carouselButtonRight {
-    right: 12px;
+    display: none;
   }
 
   .processPage {
